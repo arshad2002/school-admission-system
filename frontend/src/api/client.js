@@ -4,7 +4,8 @@
  * the X-Student-Id header from the provided studentId.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = rawBaseUrl !== undefined ? rawBaseUrl.replace(/\/+$/, '') : 'http://localhost:8080';
 
 class ApiError extends Error {
   constructor(status, body) {

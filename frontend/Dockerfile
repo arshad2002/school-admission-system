@@ -1,31 +1,32 @@
-# ── Stage 1: Build ───────────────────────────────────────────
+# ── Stage 1: Build Frontend Assets ───────────────────────────
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Install dependencies first (cache layer)
+# Copy package files for dependency caching
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
-# Copy source and build
+# Copy source files
 COPY . .
 
-# Accept build-time API URL (can be overridden at docker build)
-ARG VITE_API_BASE_URL=http://localhost:5000
+# Build argument and environment variable for backend API URL
+ARG VITE_API_BASE_URL=http://localhost:8080
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Build production bundle
 RUN npm run build
 
-# ── Stage 2: Serve with Nginx ────────────────────────────────
-FROM nginx:stable-alpine
+# ── Stage 2: Serve via Nginx ─────────────────────────────────
+FROM nginx:alpine
 
-# Remove default Nginx site
-RUN rm /etc/nginx/conf.d/default.conf
+# Remove default nginx site
+RUN rm -f /etc/nginx/conf.d/default.conf
 
-# Copy custom Nginx config
+# Copy custom Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built assets from the build stage
+# Copy compiled static files
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
