@@ -27,6 +27,9 @@ namespace AdmissionSystem.Api.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<int>("ConfirmedSeats")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -34,6 +37,12 @@ namespace AdmissionSystem.Api.Migrations
 
                     b.Property<int>("TotalSeats")
                         .HasColumnType("integer");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -64,11 +73,11 @@ namespace AdmissionSystem.Api.Migrations
 
                     b.HasKey("HoldId");
 
-                    b.HasIndex("ClassId");
-
                     b.HasIndex("ExpiresAt");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("ClassId", "StudentId", "Status");
 
                     b.ToTable("Holds");
                 });

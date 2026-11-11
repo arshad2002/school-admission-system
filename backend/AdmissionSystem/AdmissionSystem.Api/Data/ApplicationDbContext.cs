@@ -17,10 +17,22 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Use PostgreSQL xmin system column as an optimistic concurrency token
+        modelBuilder.Entity<ClassRoom>()
+            .Property(c => c.Version)
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
+
         modelBuilder.Entity<SeatHold>()
             .HasIndex(h => h.Status);
 
         modelBuilder.Entity<SeatHold>()
             .HasIndex(h => h.ExpiresAt);
+
+        // Composite index for fast lookups: active holds per student+class
+        modelBuilder.Entity<SeatHold>()
+            .HasIndex(h => new { h.ClassId, h.StudentId, h.Status });
     }
 }

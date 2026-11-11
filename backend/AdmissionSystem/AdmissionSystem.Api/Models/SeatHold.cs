@@ -6,7 +6,7 @@ namespace AdmissionSystem.Api.Models;
 public class SeatHold
 {
     [Key]
-    public string HoldId { get; set; } = Guid.NewGuid().ToString("N");
+    public string HoldId { get; set; } = $"h_{Guid.NewGuid():N}";
 
     [Required]
     public string ClassId { get; set; } = string.Empty;
