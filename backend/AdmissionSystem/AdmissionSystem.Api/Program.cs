@@ -86,6 +86,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Health check endpoint for Docker & container orchestration
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
 app.Run();
 
 static string? ParseDatabaseUrl(string? url)

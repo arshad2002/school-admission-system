@@ -9,27 +9,31 @@ const POLL_INTERVAL = 4000; // 4 seconds
 export default function ClassDashboard({ refreshKey }) {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [applyingId, setApplyingId] = useState(null);
   const { studentId } = useStudent();
   const navigate = useNavigate();
   const isValid = /^\d{17}$/.test(studentId);
 
-  const fetchClasses = useCallback(async () => {
+  const fetchClasses = useCallback(async (isInitial = false) => {
     try {
       const data = await listClasses();
       setClasses(data);
+      setFetchError(null);
     } catch (err) {
-      // Only toast on first load — silent on poll failures
-      if (loading) toast.error('Failed to load classes.');
+      setFetchError(err.message || 'Failed to load classes.');
+      if (isInitial) {
+        toast.error(err.message || 'Failed to load classes.');
+      }
     } finally {
       setLoading(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Initial fetch + polling
   useEffect(() => {
-    fetchClasses();
-    const id = setInterval(fetchClasses, POLL_INTERVAL);
+    fetchClasses(true);
+    const id = setInterval(() => fetchClasses(false), POLL_INTERVAL);
     return () => clearInterval(id);
   }, [fetchClasses, refreshKey]);
 
@@ -58,7 +62,25 @@ export default function ClassDashboard({ refreshKey }) {
     return (
       <div className="text-center py-12 text-gray-500">
         <div className="inline-block w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mb-2" />
-        <p className="text-sm">Loading classes…</p>
+        <p className="text-sm">Connecting to backend and loading classes…</p>
+      </div>
+    );
+  }
+
+  if (fetchError && classes.length === 0) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center my-4">
+        <div className="text-red-600 font-semibold mb-1">Failed to Connect to Server</div>
+        <p className="text-sm text-red-500 mb-4">{fetchError}</p>
+        <button
+          onClick={() => {
+            setLoading(true);
+            fetchClasses(true);
+          }}
+          className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+        >
+          ↻ Retry Connection
+        </button>
       </div>
     );
   }
